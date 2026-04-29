@@ -1,0 +1,10 @@
+
+GitHubとの紐付け
+git remote set-url origin <新しいURL>
+
+リベースする
+git pull --rebase origin main
+
+どのリモートリポジトリと紐づいているか
+git remote -v
+
