@@ -1,5 +1,6 @@
 import pygame
 import sys
+import os
 
 # 画面設定
 SCREEN_WIDTH = 800
@@ -28,7 +29,8 @@ GOAL_WIDTH = 50
 GOAL_HEIGHT = 50
 
 # プレイヤーの画像ファイル
-PLAYER_IMG_PATH = "/Users/takeo_ohishi/Python/costume1.png"
+BASE_DIR = os.path.dirname(__file__)
+PLAYER_IMG_PATH = os.path.join(BASE_DIR, "costume1.png")
 
 # 足場の配置（横に長いステージ）
 platforms_data = [
