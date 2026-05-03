@@ -47,7 +47,7 @@ class Ball(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.Surface((BALL_RADIUS * 2, BALL_RADIUS * 2), pygame.SRCALPHA)
-        pygame.draw.circle(self.image, RED, (BALL_RADIUS, BALL_RADIUS), BALL_RADIUS)
+        pygame.draw.circle(self.image, WHITE, (BALL_RADIUS, BALL_RADIUS), BALL_RADIUS)
         self.rect = self.image.get_rect()
         self.rect.center = (WIDTH // 2, HEIGHT // 2)
         self.speed_x = BALL_SPEED_X * random.choice([1, -1])
