@@ -30,23 +30,37 @@ TOCHKA_SIZE = 10
 # 画像ファイル
 BASE_DIR = os.path.dirname(__file__)
 IMG_PATH = os.path.join(BASE_DIR, "space-invaders/")
-ENEMY_IMGs = ["enemy1_1.png", "enemy2_1.png", "enemy2_2.png", "enemy3_1.png", "enemy3_2.png"]
+ENEMY_IMGs = ["enemy1_1.png", "enemy1_2.png", "enemy2_1.png", "enemy2_2.png", "enemy3_1.png", "enemy3_2.png"]
 PLAYER_IMG = "ship.png"
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, row, col):
         super().__init__()
-        self.image = pygame.image.load(IMG_PATH + ENEMY_IMGs[row]).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (ENEMY_WIDTH, ENEMY_HEIGHT))
+        if row == 0:
+            self.image1 = pygame.image.load(IMG_PATH + ENEMY_IMGs[0]).convert_alpha()
+            self.image1 = pygame.transform.scale(self.image1, (ENEMY_WIDTH, ENEMY_HEIGHT))
+            self.image2 = pygame.image.load(IMG_PATH + ENEMY_IMGs[1]).convert_alpha()
+            self.image2 = pygame.transform.scale(self.image2, (ENEMY_WIDTH, ENEMY_HEIGHT))
+        elif row == 1 or row == 2:
+            self.image1 = pygame.image.load(IMG_PATH + ENEMY_IMGs[2]).convert_alpha()
+            self.image1 = pygame.transform.scale(self.image1, (ENEMY_WIDTH, ENEMY_HEIGHT))
+            self.image2 = pygame.image.load(IMG_PATH + ENEMY_IMGs[3]).convert_alpha()
+            self.image2 = pygame.transform.scale(self.image2, (ENEMY_WIDTH, ENEMY_HEIGHT))
+        else:
+            self.image1 = pygame.image.load(IMG_PATH + ENEMY_IMGs[4]).convert_alpha()
+            self.image1 = pygame.transform.scale(self.image1, (ENEMY_WIDTH, ENEMY_HEIGHT))
+            self.image2 = pygame.image.load(IMG_PATH + ENEMY_IMGs[5]).convert_alpha()
+            self.image2 = pygame.transform.scale(self.image2, (ENEMY_WIDTH, ENEMY_HEIGHT))
+        self.frame = [self.image1, self.image2]
+        self.frame_index = 0
+        self.image = self.frame[self.frame_index]
         self.rect = self.image.get_rect()
         self.rect.topleft = (col * (ENEMY_WIDTH + 10) + 150, row * (ENEMY_HEIGHT + 10) + 55)
         self.enemy_clock = 0
         self.sv_direction = -1
-        self.enemy_bullet_clock = random.randint(0, 60)  # 弾を撃つタイミングをランダムに設定
 
     def update(self, direction):
         self.enemy_clock += 1
-        self.enemy_bullet_clock += 1
         if self.enemy_clock >= 60:  # 1秒ごとに移動
             self.enemy_clock = 0  # クロックをリセット
             if self.sv_direction != direction:
@@ -54,6 +68,11 @@ class Enemy(pygame.sprite.Sprite):
                 self.rect.y += 55  # 敵を下に移動
             else:
                 self.rect.x += ENEMY_SPEED * direction
+                self.frame_index ^= 1  # フレームを切り替える
+                self.image = self.frame[self.frame_index]
+        elif self.enemy_clock == 30 :
+            self.frame_index ^= 1  # フレームを切り替える
+            self.image = self.frame[self.frame_index]
 
 class Enemy_Bullet(pygame.sprite.Sprite)  :
     def __init__(self, x, y):
@@ -75,7 +94,7 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.image.load(IMG_PATH + PLAYER_IMG).convert_alpha()
         self.image = pygame.transform.scale(self.image, (50, 50))
         self.rect = self.image.get_rect()
-        self.rect.center = (WIDTH // 2, HEIGHT - 35)
+        self.rect.center = (300, HEIGHT - 35)
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -128,7 +147,7 @@ def main():
     enemy_bullets = pygame.sprite.Group()
 
     # トーチカのグループを作成
-    tochkas = pygame.sprite.Group()  # 衝突点を表示するためのグループ 
+    tochkas = pygame.sprite.Group()  
     for number in range(4):
         for row in range(4):
             for col in range(10):
@@ -212,6 +231,9 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 waiting = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    waiting = False
         game_over_text = font.render("GAME OVER", True, WHITE)
         screen.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2 - game_over_text.get_height() // 2))
         pygame.display.flip()
