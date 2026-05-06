@@ -30,7 +30,8 @@ GOAL_HEIGHT = 50
 
 # プレイヤーの画像ファイル
 BASE_DIR = os.path.dirname(__file__)
-PLAYER_IMG_PATH = os.path.join(BASE_DIR, "costume1.png")
+PLAYER_IMG_PATH1 = os.path.join(BASE_DIR, "costume1.png")
+PLAYER_IMG_PATH2 = os.path.join(BASE_DIR, "costume2.png")
 
 # 足場の配置（横に長いステージ）
 platforms_data = [
@@ -48,11 +49,23 @@ platforms_data = [
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = pygame.image.load(PLAYER_IMG_PATH).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (PLAYER_WIDTH, PLAYER_HEIGHT))
+        self.img1 = pygame.image.load(PLAYER_IMG_PATH1).convert_alpha()
+        self.img1 = pygame.transform.scale(self.img1, (PLAYER_WIDTH, PLAYER_HEIGHT))
+        self.img2 = pygame.image.load(PLAYER_IMG_PATH2).convert_alpha()
+        self.img2 = pygame.transform.scale(self.img2, (PLAYER_WIDTH, PLAYER_HEIGHT))
+        self.img3 = pygame.image.load(PLAYER_IMG_PATH1).convert_alpha()
+        self.img3 = pygame.transform.scale(self.img3, (PLAYER_WIDTH, PLAYER_HEIGHT))
+        self.img3 = pygame.transform.flip(self.img3, True, False)
+        self.img4 = pygame.image.load(PLAYER_IMG_PATH2).convert_alpha()
+        self.img4 = pygame.transform.scale(self.img4, (PLAYER_WIDTH, PLAYER_HEIGHT))
+        self.img4 = pygame.transform.flip(self.img4, True, False)
+        self.frame_index = 0
+        self.frame = [self.img1, self.img2 , self.img3, self.img4]
+        self.image = self.frame[self.frame_index]
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
-
+        self.animation_clock = 0
+        
         # 速度ベクトル
         self.vel_x = 0
         self.vel_y = 0
@@ -79,6 +92,16 @@ class Player(pygame.sprite.Sprite):
         self.vel_y += GRAVITY
         if self.vel_y > MAX_FALL_SPEED:
             self.vel_y = MAX_FALL_SPEED
+
+        # アニメーション
+        self.animation_clock += 1
+        if self.animation_clock >= 10 and self.vel_x != 0:  # 10フレームごとにアニメーションを切り替える
+            self.animation_clock = 0
+            self.frame_index ^= 1  # フレームを切り替える
+            if self.vel_x >0:
+                self.image = self.frame[self.frame_index]  # 右向きのフレーム
+            else:
+                self.image = self.frame[self.frame_index + 2]  # 左向きのフレーム
 
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
