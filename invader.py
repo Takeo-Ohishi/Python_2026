@@ -30,7 +30,7 @@ TOCHKA_SIZE = 10
 # 画像ファイル
 BASE_DIR = os.path.dirname(__file__)
 IMG_PATH = os.path.join(BASE_DIR, "space-invaders/")
-ENEMY_IMGs = ["enemy1_1.png", "enemy1_2.png", "enemy2_1.png", "enemy2_2.png", "enemy3_1.png", "enemy3_2.png"]
+ENEMY_IMGs = ["enemy1_1.png", "enemy1_2.png", "enemy2_1.png", "enemy2_2.png", "enemy3_1.png", "enemy3_2.png", "mystery.png"]
 PLAYER_IMG = "ship.png"
 
 class Enemy(pygame.sprite.Sprite):
@@ -81,12 +81,28 @@ class Enemy_Bullet(pygame.sprite.Sprite)  :
         pygame.draw.circle(self.image, YELLOW, (ENEMY_BULLET_RADIUS, ENEMY_BULLET_RADIUS), ENEMY_BULLET_RADIUS)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        self.speed = 1.5 * ENEMY_SPEED
+        self.speed = 1.2 * ENEMY_SPEED
 
     def update(self):
         self.rect.y += self.speed
         if self.rect.top > HEIGHT:
             self.kill()
+
+class Mystery_Ship(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load(IMG_PATH + ENEMY_IMGs[6]).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (ENEMY_WIDTH, ENEMY_HEIGHT))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (100, 55)
+        self.sv_direction = -1
+
+    def update(self, direction):
+        if self.sv_direction != direction:
+            self.sv_direction = direction
+            self.rect.y += 55  # 敵を下に移動
+        else:
+            self.rect.x += ENEMY_SPEED * direction
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -141,7 +157,6 @@ def main():
         for col in range(10):
             enemy = Enemy(row, col)
             enemies.add(enemy)
-
     player = pygame.sprite.GroupSingle(Player())
     bullets = pygame.sprite.Group()
     enemy_bullets = pygame.sprite.Group()
@@ -154,13 +169,14 @@ def main():
                 tochka = Tochka(50 + 200 * number + TOCHKA_SIZE * col , 450 + TOCHKA_SIZE * row )
                 tochkas.add(tochka)
 
-    running = True
+    running = 1
     direction = -1  # 1:右, -1:左
     score = 0
     damege = 0
     font = pygame.font.SysFont(None, 48)
+    you_win = False
 
-    while running:
+    while running > 0:
         # 画面を黒色(#000000)に塗りつぶし
         screen.fill((0, 0, 0))
         clock.tick(60)  
@@ -169,7 +185,7 @@ def main():
         for event in pygame.event.get():
             # 閉じるボタンが押されたら終了
             if event.type == pygame.QUIT:  
-                running = False
+                running = 0
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     # 弾を発射
@@ -179,7 +195,7 @@ def main():
         is_clear = True
         for enemy in enemies:
             is_clear = False
-            if random.random() < 0.01:  # 1%の確率で弾を撃つ敵
+            if random.random() < 0.007:  # 0.5%の確率で弾を撃つ敵
                 enemy_bullet = Enemy_Bullet(enemy.rect.centerx, enemy.rect.bottom)
                 enemy_bullets.add(enemy_bullet) 
             if enemy.rect.right >= WIDTH - 30:
@@ -189,11 +205,16 @@ def main():
                 direction = 1
                 break
             if enemy.rect.bottom >= HEIGHT - 30:
-                running = False
+                running = 0
                 break
 
         if is_clear:
-            running = False
+            if running == 1:
+                enemies.add(Mystery_Ship())
+                running = 2
+            else:
+                you_win = True
+                running = 0
 
         # 敵の更新と描画
         enemies.update(direction)
@@ -211,8 +232,10 @@ def main():
         score += len(hits) * 10
         hits = pygame.sprite.spritecollide(player.sprite, enemy_bullets, True)
         damege += len(hits) * 10
-        if damege > 100:
-             running = False
+        hits = pygame.sprite.spritecollide(player.sprite, enemies, True)
+        damege += len(hits) *210
+        if damege > 200:
+             running = 0
         pygame.sprite.groupcollide(enemy_bullets, bullets, True, True)
         pygame.sprite.groupcollide(tochkas, bullets, True, True)
         pygame.sprite.groupcollide(tochkas, enemy_bullets, True, True)
@@ -234,8 +257,12 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     waiting = False
-        game_over_text = font.render("GAME OVER", True, WHITE)
-        screen.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2 - game_over_text.get_height() // 2))
+        if you_win:
+            win_text = font.render("YOU WIN!", True, WHITE)
+            screen.blit(win_text, (WIDTH // 2 - win_text.get_width() // 2, HEIGHT // 2 - win_text.get_height() // 2))
+        else:
+            game_over_text = font.render("GAME OVER", True, WHITE)
+            screen.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2 - game_over_text.get_height() // 2))
         pygame.display.flip()
         clock.tick(60)  
     pygame.quit()
