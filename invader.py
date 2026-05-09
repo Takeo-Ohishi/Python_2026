@@ -33,6 +33,11 @@ IMG_PATH = os.path.join(BASE_DIR, "space-invaders/")
 ENEMY_IMGs = ["enemy1_1.png", "enemy1_2.png", "enemy2_1.png", "enemy2_2.png", "enemy3_1.png", "enemy3_2.png", "mystery.png"]
 PLAYER_IMG = "ship.png"
 
+shoot_sound = os.path.join(IMG_PATH, "shoot.wav")
+win_sound = os.path.join(IMG_PATH, "Win.wav")
+lose_sound = os.path.join(IMG_PATH, "Lose.wav")
+Damage_sound = os.path.join(IMG_PATH, "Crunch.wav")
+
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, row, col):
         super().__init__()
@@ -144,7 +149,10 @@ class Tochka(pygame.sprite.Sprite):
 
 def main():
     # Pygameの初期化
-    pygame.init()  
+    pygame.init()
+    pygame.mixer.init()
+    sound = pygame.mixer.Sound(shoot_sound)
+    damage_sound = pygame.mixer.Sound(Damage_sound)
     # 画面の設定
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     # タイトルバーの設定（表示する文字を指定）
@@ -191,6 +199,7 @@ def main():
                     # 弾を発射
                     bullet = Bullet(player.sprite.rect.centerx, player.sprite.rect.top)
                     bullets.add(bullet)
+                    sound.play()  # 発射音を再生
 
         is_clear = True
         for enemy in enemies:
@@ -231,6 +240,8 @@ def main():
         hits = pygame.sprite.groupcollide(enemies, bullets, True, True)
         score += len(hits) * 10
         hits = pygame.sprite.spritecollide(player.sprite, enemy_bullets, True)
+        if hits:
+            damage_sound.play()  # ダメージ音を再生
         damege += len(hits) * 10
         hits = pygame.sprite.spritecollide(player.sprite, enemies, True)
         damege += len(hits) *210
@@ -250,6 +261,10 @@ def main():
 
     # ゲーム終了後の待機ループ
     waiting = True
+    if you_win:
+        pygame.mixer.Sound(win_sound).play()
+    else:
+        pygame.mixer.Sound(lose_sound).play()
     while waiting:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
